@@ -24,6 +24,16 @@ class EbookReaderController extends Controller {
   if($status===206) $headers['Content-Range']="bytes {$start}-{$end}/{$size}";
   return response()->stream(function() use($path,$start,$length) { $handle=fopen($path,'rb'); fseek($handle,$start); $remaining=$length; while($remaining>0 && !feof($handle)) { $chunk=fread($handle,min(8192,$remaining)); if($chunk===false || $chunk==='') break; echo $chunk; $remaining-=strlen($chunk); if(ob_get_level()) ob_flush(); flush(); } fclose($handle); },$status,$headers);
  }
+ public function download(Request $request,Book $book) {
+  $this->authorize('readEbook',$book);
+  abort_unless($book->ebook_path && Storage::disk('private')->exists($book->ebook_path),404);
+  $filename=\Illuminate\Support\Str::slug($book->title) ?: 'ebook';
+  return Storage::disk('private')->download($book->ebook_path,$filename.'.pdf',[
+   'Content-Type'=>'application/pdf',
+   'Cache-Control'=>'private, no-store, no-cache, must-revalidate',
+   'X-Content-Type-Options'=>'nosniff',
+  ]);
+ }
  public function progress(Request $request,Book $book) {
   $this->authorize('readEbook',$book); $data=$request->validate(['page_number'=>['required','integer','min:1','max:100000']]);
   ReadingProgress::updateOrCreate(['user_id'=>$request->user()->id,'book_id'=>$book->id],['page_number'=>$data['page_number'],'updated_at'=>now()]); return response()->json(['saved'=>true]);

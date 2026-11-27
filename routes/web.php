@@ -29,6 +29,7 @@ Route::middleware(['auth','active-account','role:admin,staff,member'])->group(fu
  Route::get('/daftar-bacaan',[ReadingListController::class,'index'])->middleware('role:member')->name('reading-list.index');
  Route::get('/baca/{book}',[EbookReaderController::class,'show'])->middleware('role:member')->name('reader.show');
  Route::get('/baca/{book}/file',[EbookReaderController::class,'file'])->middleware('role:member')->name('reader.file');
+ Route::get('/baca/{book}/unduh',[EbookReaderController::class,'download'])->middleware('role:member')->name('reader.download');
  Route::post('/baca/{book}/progress',[EbookReaderController::class,'progress'])->middleware('role:member')->name('reader.progress');
  Route::get('/admin/ebook',[EbookAdminController::class,'index'])->middleware('role:admin,staff')->name('admin.ebooks.index');
  Route::get('/admin/ebook/tambah',[EbookAdminController::class,'create'])->middleware('role:admin,staff')->name('admin.ebooks.create');

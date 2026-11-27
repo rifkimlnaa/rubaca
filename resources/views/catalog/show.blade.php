@@ -18,11 +18,11 @@
             </div>
             <div class="flex flex-wrap gap-3 mt-9">
                 @if($book->ebook_path)
-                    @guest<a href="{{ route('ebooks.access',$book) }}" class="btn-primary">Daftar / masuk untuk membaca ↗</a>@else @if(auth()->user()->isMember())<a href="{{ route('ebooks.access',$book) }}" class="btn-primary">Baca e-book ↗</a>@else<span class="btn-outline opacity-70">E-book khusus anggota</span>@endif @endguest
+                    @guest<a href="{{ route('ebooks.access',$book) }}" class="btn-primary">Daftar / masuk untuk membaca ↗</a>@else @if(auth()->user()->isMember())<a href="{{ route('ebooks.access',$book) }}" class="btn-primary">Baca e-book ↗</a><a href="{{ route('reader.download',$book) }}" class="btn-outline">Unduh PDF ↓</a>@else<span class="btn-outline opacity-70">E-book khusus anggota</span>@endif @endguest
                 @endif
                 @auth
                     @if(auth()->user()->isMember())
-                        @if($book->available_count)<span class="btn-outline opacity-60">Stok fisik habis</span>@else<form method="POST" action="{{ route('loans.request',$book) }}">@csrf<button class="btn-outline">Ajukan peminjaman</button></form>@endif
+                        @if($book->available_count > 0)<form method="POST" action="{{ route('loans.request',$book) }}">@csrf<button class="btn-outline">Ajukan peminjaman</button></form>@else<span class="btn-outline opacity-60">Stok fisik habis</span>@endif
                         <form method="POST" action="{{ route('reading-list.toggle',$book) }}">@csrf<button class="btn-outline">Simpan bacaan</button></form>
                     @endif
                 @else

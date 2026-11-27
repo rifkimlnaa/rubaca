@@ -17,7 +17,12 @@ class AuthController extends Controller {
  public function showRegister() { return view('auth.register'); }
  public function register(Request $request) {
   $data=$request->validate(
-   ['name'=>['required','string','max:120'],'email'=>['required','email','max:180','unique:users,email'],'password'=>['required','confirmed',Password::min(8)->numbers(),'regex:/[A-Z]/'],'phone'=>['nullable','string','max:30']],
+   ['name'=>['required','string','max:120'],
+   'email'=>['required','email','max:180','unique:users,email'],
+   'password'=>['required','confirmed',Password::min(8)->numbers(),'regex:/[A-Z]/'],
+   'phone'=>['nullable','string','max:30'],
+   'institution'=>['required','string','max:180'],
+   'occupation'=>['required','string','max:120']],
    ['password'=>'Kata sandi harus minimal 8 karakter, memiliki minimal satu huruf besar dan satu angka.','password.regex'=>'Kata sandi harus memiliki minimal satu huruf besar (A–Z).','password.confirmed'=>'Konfirmasi kata sandi tidak cocok.']
   );
   $data['role']='member'; $data['is_active']=true; $data['member_code']='MBR-'.strtoupper(substr(bin2hex(random_bytes(5)),0,8));

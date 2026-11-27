@@ -28,7 +28,7 @@
                             @guest
                                 <a href="{{ route('ebooks.access', $book) }}" class="rb-btn rb-btn-sm">Masuk untuk membaca</a>
                             @else
-                                @if(auth()->user()->isMember())<a href="{{ route('ebooks.access', $book) }}" class="rb-btn rb-btn-sm">Baca e-book</a>@else<span class="rb-card-cat">Akses khusus anggota</span>@endif
+                                @if(auth()->user()->isMember())<div class="flex flex-wrap gap-2"><a href="{{ route('ebooks.access', $book) }}" class="rb-btn rb-btn-sm">Baca e-book</a><a href="{{ route('reader.download', $book) }}" class="rb-btn rb-btn-sm rb-btn-ghost">Unduh PDF</a></div>@else<span class="rb-card-cat">Akses khusus anggota</span>@endif
                             @endguest
                         </div>
                     </article>

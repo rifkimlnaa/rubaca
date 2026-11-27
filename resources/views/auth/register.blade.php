@@ -9,6 +9,10 @@
             <label><span class="rb-field-label">Nama lengkap</span><input class="input-field" name="name" value="{{ old('name') }}" autocomplete="name" required></label>
             <label><span class="rb-field-label">Telepon (opsional)</span><input class="input-field" name="phone" value="{{ old('phone') }}" autocomplete="tel"></label>
         </div>
+        <div class="rb-form-2">
+            <label><span class="rb-field-label">Asal instansi</span><input class="input-field" name="institution" value="{{ old('institution') }}" autocomplete="organization"></label>
+            <label><span class="rb-field-label">Pekerjaan</span><input class="input-field" name="occupation" value="{{ old('occupation') }}" autocomplete="organization-title"></label>
+        </div>
         <label><span class="rb-field-label">Email</span><input class="input-field" name="email" type="email" value="{{ old('email') }}" autocomplete="email" required></label>
         <div>
             <label for="register-password" class="rb-field-label">Kata sandi</label>

@@ -47,7 +47,7 @@ class DashboardController extends Controller
             ->get();
 
         $settings = $user->isAdmin() ? [
-            'loan_days' => LibrarySetting::get('loan_days', 14),
+            'loan_days' => LibrarySetting::get('loan_days', 5),
             'renewal_days' => LibrarySetting::get('renewal_days', 7),
             'fine_per_day' => LibrarySetting::get('fine_per_day', 1000),
             'max_active_loans' => LibrarySetting::get('max_active_loans', 3),

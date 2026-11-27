@@ -20,7 +20,7 @@ class LoanController extends Controller {
   DB::transaction(function() use($loan) {
    $loan=Loan::whereKey($loan->id)->lockForUpdate()->firstOrFail(); abort_unless($loan->status==='requested',409,'Permintaan sudah diproses.');
    $copy=BookCopy::where('book_id',$loan->book_id)->where('status','available')->lockForUpdate()->first(); abort_if(!$copy,409,'Stok sudah tidak tersedia.');
-   $copy->update(['status'=>'loaned']); $days=(int)LibrarySetting::get('loan_days',14);
+   $copy->update(['status'=>'loaned']); $days=(int)LibrarySetting::get('loan_days',5);
    $loan->update(['book_copy_id'=>$copy->id,'status'=>'borrowed','borrowed_at'=>now(),'due_at'=>now()->addDays($days)]);
   });
   $loan->refresh(); $loan->user->notify(new LoanStatusNotification('Peminjaman disetujui','Buku '.$loan->book->title.' dapat diambil. Tenggat: '.$loan->due_at->format('d/m/Y'),'/loans/mine'));
