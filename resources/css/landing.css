@@ -1,0 +1,542 @@
+/* ==========================================================================
+   RUBACA — landing page
+   Satu hari di ruang baca: foto pagi hari, lalu perlahan senja, lalu malam
+   dengan lampu baca menyala. Latar berubah dari terang ke navy mengikuti scroll.
+
+   Gerak dikendalikan resources/js/landing.js, yang hanya menulis --r0/--e0 dst.
+   (progres 0–1 per elemen). Semua nilai bawaan var(--x, n) di bawah adalah
+   keadaan "tanpa skrip / reduced motion": semua konten tampil statis berurutan.
+   ========================================================================== */
+
+html:has(#rubaca-home) {
+    --bg: #efefea;
+    --fg: #10233f;
+    --ink: #10233f;
+    --cream: #f2efe8;
+    --navy: #0e2140;
+    --deep: #08142a;
+    --amber: #f0b65b;
+    --glow: 0;
+    --read: 0;
+    background: var(--bg);
+}
+html[data-tone='night']:has(#rubaca-home) {
+    --fg: #f2efe8;
+}
+
+body:has(#rubaca-home) {
+    background: transparent;
+    color: var(--fg);
+    font-family: 'Hanken Grotesk', 'DM Sans', system-ui, sans-serif;
+}
+
+/* Header menumpang di atas foto, lalu ikut tergulung pergi. */
+body:has(#rubaca-home) > header {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 60;
+    background: transparent;
+    border: 0;
+}
+body:has(#rubaca-home) > header .site-wrap:first-child { min-height: 88px; }
+body:has(#rubaca-home) > header .nav-link { color: #10233f; }
+body:has(#rubaca-home) > header .nav-link:hover { color: #35557f; }
+body:has(#rubaca-home) > header .btn-primary { background: #10233f; border-radius: 2px; }
+body:has(#rubaca-home) > header nav.md\:hidden { display: none; }
+
+body:has(#rubaca-home) footer {
+    background: var(--deep) !important;
+    color: #e6e2d8 !important;
+}
+body:has(#rubaca-home) footer a { color: #f0d9ad !important; }
+
+/* --------------------------------------------------------------------------
+   Dasar
+   -------------------------------------------------------------------------- */
+.rubaca-home {
+    --pad: clamp(22px, 6vw, 96px);
+    --fg-2: color-mix(in srgb, var(--fg) 78%, transparent);
+    --rule: color-mix(in srgb, var(--fg) 26%, transparent);
+    --serif: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    --sans: 'Hanken Grotesk', 'DM Sans', system-ui, sans-serif;
+    position: relative;
+    overflow-x: clip;
+    color: var(--fg);
+    transition: color 0.45s ease;
+}
+.rubaca-home *,
+.rubaca-home *::before,
+.rubaca-home *::after { transition: color 0.45s ease, background-color 0.45s ease, border-color 0.45s ease; }
+
+.rubaca-home a:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 4px;
+}
+
+.rb-scene { position: relative; height: var(--scene-h, 300vh); }
+.rb-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+    display: grid;
+}
+.rb-stage > * { grid-area: 1 / 1; min-width: 0; }
+
+
+.rb-h2 {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 380;
+    font-size: clamp(2.2rem, 4.6vw, 4.6rem);
+    line-height: 1.04;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+}
+.rb-body {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(1.1rem, 1.35vw, 1.3rem);
+    line-height: 1.6;
+    max-width: 34rem;
+    color: var(--fg-2);
+}
+
+/* Teks muncul kata demi kata. --r0 datang dari elemen induk. */
+.rb-w { opacity: calc(0.16 + 0.84 * clamp(0, calc(var(--r0, 1) * (var(--n, 1) + 4) - var(--i, 0)), 1)); }
+
+.rb-fade { opacity: var(--r0, 1); }
+
+/* Tombol dan tautan */
+.rb-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 3rem;
+    padding: 0 1.5rem;
+    font: 600 0.95rem/1 var(--sans);
+    color: var(--cream);
+    background: var(--ink);
+    border-radius: 2px;
+    transition: background-color 0.2s ease, color 0.2s ease !important;
+}
+.rb-btn:hover { background: #274669; }
+.rb-btn-light { color: var(--ink); background: var(--cream); }
+.rb-btn-light:hover { background: #fff; }
+.rb-link {
+    font: 600 0.95rem/1.2 var(--sans);
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.4em;
+    transition: text-decoration-thickness 0.15s ease !important;
+}
+.rb-link:hover { text-decoration-thickness: 2px; }
+
+/* Pita pembatas buku di tepi kanan */
+.rb-ribbon {
+    position: fixed;
+    top: 0;
+    right: max(10px, 1.4vw);
+    z-index: 50;
+    width: 4px;
+    height: calc(var(--read, 0) * 100vh);
+    background: var(--amber);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), 50% 100%, 0 calc(100% - 5px));
+    pointer-events: none;
+}
+
+.rb-anchor {
+    position: absolute;
+    left: 0;
+    top: calc((var(--scene-h) - 100svh) * 0.7);
+    width: 1px;
+    height: 1px;
+}
+
+/* --------------------------------------------------------------------------
+   Adegan 1 — pagi
+   -------------------------------------------------------------------------- */
+.rb-stage-pagi {
+    --fi-t: 14svh; --fi-r: 6vw; --fi-b: 14svh; --fi-l: 52vw; --ty-end: -18svh;
+    background: var(--bg);
+}
+
+.rb-frame {
+    position: relative;
+    z-index: 0;
+    overflow: hidden;
+    background: #cdb89a;
+    clip-path: inset(
+        calc(var(--fi-t) * var(--e1, 0))
+        calc(var(--fi-r) * var(--e1, 0))
+        calc(var(--fi-b) * var(--e1, 0))
+        calc(var(--fi-l) * var(--e1, 0))
+        round calc(3px * var(--e1, 0))
+    );
+}
+/* Titik zoom ada di tumpukan buku dan buku terbuka di meja (±62% / 80% gambar). */
+.rb-frame-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 62% 80%;
+    transform-origin: 62% 80%;
+    transform:
+        translate(
+            calc(var(--e0, 0) * -12vw + var(--e1, 0) * 23vw),
+            calc(var(--e0, 0) * -24svh + var(--e1, 0) * (var(--ty-end) + 24svh))
+        )
+        scale(calc(1 + 1.3 * var(--e0, 0) - 0.8 * var(--e1, 0)));
+    will-change: transform;
+}
+.rb-tint {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(8 20 42 / 0.94) 0%, rgb(8 20 42 / 0.72) 38%, rgb(8 20 42 / 0.12) 74%, rgb(8 20 42 / 0.32) 100%);
+    opacity: calc(var(--e0, 0) * (1 - 0.9 * var(--e1, 0)));
+}
+.rb-wash {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgb(239 239 234 / 0.9) 0%, rgb(239 239 234 / 0) 22%),
+        linear-gradient(90deg, rgb(239 239 234 / 0.94) 0%, rgb(239 239 234 / 0.86) 30%, rgb(239 239 234 / 0.4) 52%, rgb(239 239 234 / 0) 74%);
+    opacity: calc(1 - var(--e0, 0));
+}
+
+.rb-hero-copy {
+    z-index: 2;
+    align-self: center;
+    padding: 4rem var(--pad) 0;
+    color: var(--ink);
+    opacity: calc(1 - 1.25 * var(--e0, 0));
+    transform: translateY(calc(var(--e0, 0) * -7svh));
+}
+.rb-hero-title {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 330;
+    font-size: clamp(3.1rem, 7.4vw, 7.8rem);
+    line-height: 0.96;
+    letter-spacing: -0.035em;
+}
+.rb-line { display: block; overflow: hidden; padding-bottom: 0.08em; }
+.rb-hw {
+    display: inline-block;
+    animation: rbRise 1s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 110ms + 150ms);
+}
+@keyframes rbRise {
+    from { transform: translateY(105%); }
+    to { transform: none; }
+}
+.rb-lead {
+    margin: 1.8rem 0 0;
+    max-width: 29rem;
+    font-family: var(--serif);
+    font-size: clamp(1.1rem, 1.4vw, 1.3rem);
+    line-height: 1.55;
+    color: #2b3f5c;
+    animation: rbFade 1s ease 0.75s both;
+}
+.rb-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.6rem;
+    margin-top: 2rem;
+    animation: rbFade 1s ease 0.95s both;
+}
+@keyframes rbFade { from { opacity: 0; } to { opacity: 1; } }
+
+.rb-hint {
+    z-index: 2;
+    align-self: end;
+    justify-self: start;
+    margin: 0 var(--pad) 1.6rem;
+    font: 500 0.82rem/1 var(--sans);
+    color: #2b3f5c;
+    opacity: calc(1 - var(--e0, 0));
+}
+
+.rb-statement {
+    z-index: 2;
+    align-self: start;
+    margin: 0;
+    padding: clamp(88px, 17svh, 160px) var(--pad) 0;
+    max-width: 66rem;
+    font-family: var(--serif);
+    font-weight: 360;
+    font-size: clamp(1.65rem, 3.5vw, 3.7rem);
+    line-height: 1.16;
+    letter-spacing: -0.015em;
+    color: #f3efe6;
+    opacity: calc(min(1, var(--r0, 1) * 8) * (1 - var(--r1, 0)));
+}
+
+.rb-feature {
+    z-index: 2;
+    align-self: center;
+    justify-self: start;
+    width: min(46vw, 40rem);
+    padding: 0 0 0 var(--pad);
+    color: var(--fg);
+    opacity: var(--r0, 1);
+}
+.rb-feature .rb-body { margin-top: 1.5rem; }
+.rb-paths { margin-top: 2rem; border-top: 1px solid var(--rule); opacity: var(--r0, 1); }
+.rb-paths a {
+    display: block;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--rule);
+    transition: padding-left 0.2s ease !important;
+}
+.rb-paths a:hover { padding-left: 0.6rem; }
+.rb-paths strong { display: block; font: 500 1.4rem/1.2 var(--serif); }
+.rb-paths span { display: block; margin-top: 0.3rem; font: 400 0.92rem/1.4 var(--sans); color: var(--fg-2); }
+
+/* --------------------------------------------------------------------------
+   Adegan 2 — koleksi
+   -------------------------------------------------------------------------- */
+.rb-stage-books {
+    grid-template-rows: auto 1fr;
+    padding-top: clamp(84px, 13svh, 128px);
+}
+.rb-stage-books > * { grid-area: auto; }
+.rb-books-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.2rem 3rem;
+    padding: 0 var(--pad);
+}
+.rb-books-head .rb-h2 { max-width: 15ch; }
+.rb-books-aside { display: grid; gap: 1rem; justify-items: start; opacity: var(--e0, 1); }
+.rb-books-aside .rb-body { max-width: 20rem; }
+
+.rb-books-track {
+    --bw: clamp(190px, min(23vw, 34svh), 340px);
+    --gap: clamp(36px, 8vw, 130px);
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
+    padding-inline: calc(50% - var(--bw) / 2);
+    transform: translate3d(var(--tx, 0px), 0, 0);
+    will-change: transform;
+}
+.rb-book {
+    flex: none;
+    width: var(--bw);
+    display: block;
+    transform: scale(calc(0.7 + 0.42 * var(--f, 1)));
+    opacity: calc(0.35 + 0.65 * var(--f, 1));
+    will-change: transform;
+}
+.rb-cover {
+    --c: #1f3a5f; --t: #f2efe8;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    aspect-ratio: 3 / 4.1;
+    padding: 1.1rem 1rem 1rem 1.5rem;
+    background: var(--c);
+    color: var(--t);
+    border-radius: 2px 5px 5px 2px;
+    box-shadow:
+        inset 7px 0 0 rgb(0 0 0 / 0.2),
+        inset 8px 0 0 rgb(255 255 255 / 0.09),
+        0 26px 34px -14px rgb(8 20 42 / 0.5);
+}
+.rb-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 3px;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.12));
+    border-radius: 0 5px 5px 0;
+}
+.rb-book[style*='--tone:1'] .rb-cover { --c: #2f4a3f; }
+.rb-book[style*='--tone:2'] .rb-cover { --c: #d9cba8; --t: #10233f; }
+.rb-book[style*='--tone:3'] .rb-cover { --c: #55657a; }
+.rb-cover-title {
+    font: 460 calc(var(--bw) * 0.105)/1.1 var(--serif);
+    letter-spacing: -0.01em;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.rb-cover-author {
+    padding-top: 0.7rem;
+    border-top: 1px solid color-mix(in srgb, var(--t) 40%, transparent);
+    font: 500 calc(var(--bw) * 0.048)/1.3 var(--sans);
+}
+.rb-book-meta {
+    display: block;
+    margin-top: 1.3rem;
+    text-align: center;
+    font: 500 0.95rem/1.3 var(--sans);
+    color: var(--fg-2);
+    opacity: calc(var(--f, 1) * var(--f, 1));
+}
+.rb-books-empty { margin: 0; padding: 3rem var(--pad); font: 400 1.3rem/1.5 var(--serif); max-width: 36rem; }
+
+/* --------------------------------------------------------------------------
+   Adegan 3 — malam
+   -------------------------------------------------------------------------- */
+.rb-stage-digital {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    column-gap: clamp(24px, 6vw, 96px);
+    padding-inline: var(--pad);
+}
+.rb-stage-digital > * { grid-area: auto; }
+.rb-glow {
+    position: absolute;
+    right: 2vw;
+    top: 50%;
+    width: 58vw;
+    height: 58vw;
+    translate: 0 -50%;
+    background: radial-gradient(closest-side, rgb(255 184 77 / 0.42), rgb(255 184 77 / 0.14) 52%, rgb(255 184 77 / 0) 100%);
+    mix-blend-mode: screen;
+    opacity: var(--glow, 0);
+    pointer-events: none;
+}
+.rb-digital-copy { grid-column: 1; grid-row: 1; display: grid; gap: 1.6rem; justify-items: start; }
+.rb-digital-copy .rb-h2 { max-width: 12ch; }
+
+.rb-pages {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    justify-self: center;
+    width: min(100%, 27rem);
+    height: min(64svh, 30rem);
+}
+.rb-page {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--k, 0) * 24%);
+    height: 52%;
+    display: flex;
+    flex-direction: column;
+    padding: 1.1rem 1.5rem 1.2rem;
+    background: #f2efe8;
+    color: #10233f;
+    border-radius: 3px;
+    box-shadow: 0 24px 40px -18px rgb(0 0 0 / 0.65);
+    transform:
+        translateY(calc((1 - var(--e0, 1)) * 105svh))
+        rotate(calc((var(--k, 0) - 1) * 2.2deg * var(--e0, 1)));
+    opacity: min(1, calc(var(--r0, 1) * 6));
+}
+.rb-page * { color: inherit; }
+.rb-page-title { font: 450 clamp(1.3rem, 1.9vw, 1.7rem)/1.12 var(--serif); letter-spacing: -0.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rb-page-author { margin-top: 0.7rem; font: 500 0.92rem/1.3 var(--sans); opacity: 0.7; }
+.rb-page-cta {
+    margin-top: auto;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgb(16 35 63 / 0.22);
+    font: 600 0.9rem/1 var(--sans);
+}
+
+/* --------------------------------------------------------------------------
+   Adegan 4 — penutup
+   -------------------------------------------------------------------------- */
+.rb-stage-closing { align-items: center; padding-inline: var(--pad); }
+.rb-figures {
+    margin: 0;
+    max-width: 58rem;
+    font-family: var(--serif);
+    font-weight: 360;
+    font-size: clamp(1.9rem, 3.9vw, 4rem);
+    line-height: 1.16;
+    letter-spacing: -0.015em;
+    font-variant-numeric: lining-nums tabular-nums;
+    opacity: calc(min(1, calc(var(--r0, 1) * 6 + 0.2)) * (1 - var(--r1, 0)));
+}
+.rb-figures .rb-w { font-weight: 480; }
+.rb-about {
+    display: grid;
+    gap: 1.6rem;
+    justify-items: start;
+    max-width: 44rem;
+    opacity: var(--r0, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Layar sempit
+   -------------------------------------------------------------------------- */
+@media (max-width: 860px) {
+    .rb-stage-digital { grid-template-columns: minmax(0, 1fr); align-content: center; row-gap: 2rem; }
+    .rb-digital-copy, .rb-pages { grid-column: 1; }
+    .rb-digital-copy { grid-row: 1; }
+    .rb-pages { grid-row: 2; height: 38svh; width: min(100%, 22rem); justify-self: start; }
+    .rb-page { height: 62%; padding: 1rem 1.1rem; }
+    .rb-page-title { font-size: 1.25rem; }
+}
+@media (max-width: 640px) {
+    body:has(#rubaca-home) > header { position: relative; background: #efefea; border-bottom: 1px solid #d5d6d0; }
+    body:has(#rubaca-home) > header .site-wrap:first-child { min-height: 72px; }
+
+    .rb-stage-pagi { --fi-t: 56svh; --fi-r: 5vw; --fi-b: 5svh; --fi-l: 5vw; --ty-end: -12svh; }
+    .rb-wash { background: linear-gradient(180deg, rgb(239 239 234 / 0.94) 0%, rgb(239 239 234 / 0.8) 46%, rgb(239 239 234 / 0) 82%); }
+    .rb-hero-copy { align-self: start; padding-top: 3.2rem; }
+    .rb-statement { padding-top: 14svh; }
+    .rb-feature { width: 100%; align-self: start; padding: 11svh var(--pad) 0; }
+    .rb-feature .rb-body { display: none; }
+    .rb-paths { margin-top: 1.2rem; }
+    .rb-paths strong { font-size: 1.2rem; }
+    .rb-paths span { font-size: 0.85rem; }
+    .rb-books-track { --bw: 58vw; }
+    .rb-ribbon { width: 3px; right: 6px; }
+}
+
+/* --------------------------------------------------------------------------
+   Tanpa skrip atau reduced motion: semuanya tampil berurutan, tanpa pin.
+   -------------------------------------------------------------------------- */
+html:not(.scrub) .rb-scene { height: auto; }
+html:not(.scrub) .rb-stage { position: relative; height: auto; overflow: visible; }
+html:not(.scrub) .rb-anchor { top: 0; }
+html:not(.scrub) .rb-hw,
+html:not(.scrub) .rb-lead,
+html:not(.scrub) .rb-actions { animation: none; }
+
+html:not(.scrub) .rb-stage-pagi { grid-template-rows: minmax(100svh, auto) auto auto; }
+html:not(.scrub) .rb-frame,
+html:not(.scrub) .rb-hero-copy,
+html:not(.scrub) .rb-hint { grid-row: 1; }
+html:not(.scrub) .rb-hint { display: none; }
+html:not(.scrub) .rb-statement {
+    grid-row: 2;
+    align-self: stretch;
+    max-width: none;
+    padding: clamp(56px, 10vw, 120px) var(--pad);
+    background: var(--navy);
+}
+html:not(.scrub) .rb-feature {
+    grid-row: 3;
+    width: auto;
+    max-width: 44rem;
+    padding: clamp(56px, 10vw, 110px) var(--pad);
+}
+html:not(.scrub) .rb-feature .rb-body { display: block; }
+
+html:not(.scrub) .rb-stage-books { padding-bottom: 4rem; }
+html:not(.scrub) .rb-books-track { overflow-x: auto; padding-bottom: 2rem; transform: none; scroll-snap-type: x proximity; }
+html:not(.scrub) .rb-book { transform: none; opacity: 1; scroll-snap-align: center; }
+
+html:not(.scrub) .rb-dark { --fg: #f2efe8; color: var(--fg); background: var(--navy); }
+html:not(.scrub) .rb-stage-digital { padding-block: 5rem; }
+html:not(.scrub) .rb-glow { opacity: 0.6; }
+html:not(.scrub) .rb-page { transform: none; opacity: 1; }
+html:not(.scrub) .rb-stage-closing { align-content: center; row-gap: 4rem; padding-block: 5rem; }
+html:not(.scrub) .rb-stage-closing > * { grid-area: auto; }
+html:not(.scrub) .rb-figures { opacity: 1; }

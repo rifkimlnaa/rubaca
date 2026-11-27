@@ -1,0 +1,10 @@
+import * as pdfjsLib from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+window.pdfReader = (options) => ({
+  pdf: null, page: Number(options.page || 1), total: 0, scale: 1.15, dark: false, busy: true, error: '', canvas: null,
+  async init() { this.canvas = this.$refs.canvas; try { this.pdf = await pdfjsLib.getDocument({ url: options.fileUrl, withCredentials: true }).promise; this.total = this.pdf.numPages; this.page = Math.min(Math.max(1,this.page),this.total); await this.render(); } catch (e) { this.error = 'Dokumen tidak dapat dibuka. Muat ulang halaman atau hubungi petugas.'; console.error(e); } finally { this.busy = false; } },
+  async render() { if (!this.pdf) return; this.busy = true; try { const page = await this.pdf.getPage(this.page); const viewport = page.getViewport({ scale: this.scale }); const context = this.canvas.getContext('2d'); this.canvas.width = viewport.width; this.canvas.height = viewport.height; await page.render({ canvasContext: context, viewport }).promise; this.saveProgress(); } catch(e) { this.error = 'Halaman gagal dirender.'; } finally { this.busy = false; } },
+  prev() { if(this.page>1){this.page--;this.render();} }, next() { if(this.page<this.total){this.page++;this.render();} }, zoomIn() { this.scale=Math.min(2.5,this.scale+.15);this.render(); }, zoomOut() { this.scale=Math.max(.55,this.scale-.15);this.render(); }, jump() { this.page=Math.min(this.total,Math.max(1,Number(this.page)||1));this.render(); },
+  saveProgress() { clearTimeout(this._saveTimer); this._saveTimer=setTimeout(()=>fetch(options.progressUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':options.csrf,'Accept':'application/json'},body:JSON.stringify({page_number:this.page})}).catch(()=>{}),500); }
+});
