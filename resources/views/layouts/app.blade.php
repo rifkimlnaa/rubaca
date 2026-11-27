@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" href="{{ asset('favicon-bawaslu.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('favicon-bawaslu.png') }}">
 
-    <title>@yield('title', config('library.name')) — {{ config('library.institution') }}</title>
+    <title>Rubaca</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('head')
 </head>

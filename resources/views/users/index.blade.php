@@ -6,6 +6,15 @@
     <div class="tb-card tb-form-card mb-5"><div class="tb-card-header"><div><h2>Buat akun pengguna</h2><p>Tambahkan anggota atau petugas ke sistem perpustakaan.</p></div></div>
         <form method="POST" action="{{ route('admin.users.store') }}" class="tb-user-create-form">@csrf
             <label class="tb-form-field"><span>Nama lengkap</span><input class="input-field" name="name" placeholder="Nama pengguna" required></label>
+            <label>
+                <span class="rb-field-label">Username</span>
+                <input class="input-field" name="username"
+                    value="{{ old('username') }}"
+                    minlength="3" maxlength="50"
+                    pattern="[A-Za-z0-9_-]+"
+                    title="Gunakan huruf, angka, tanda hubung, atau garis bawah."
+                    required>
+            </label>
             <label class="tb-form-field"><span>Alamat email</span><input class="input-field" type="email" name="email" placeholder="nama@email.id" required></label>
             <label class="tb-form-field"><span>Asal instansi (opsional)</span><input class="input-field" name="institution" placeholder="Nama instansi"></label>
             <label class="tb-form-field"><span>Pekerjaan (opsional)</span><input class="input-field" name="occupation" placeholder="Pekerjaan"></label>
@@ -15,10 +24,12 @@
         </form>
     </div>
     <div class="tb-card"><div class="tb-card-header"><div><h2>Daftar pengguna</h2><p>Perubahan peran dan status berlaku setelah disimpan.</p></div></div>
-        <div class="tb-table-wrap"><table class="tb-table"><thead><tr><th>NAMA</th><th>EMAIL</th><th>ASAL INSTANSI</th><th>PEKERJAAN</th><th>PERAN</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody>
+        <div class="tb-table-wrap"><table class="tb-table"><thead><tr><th>NAMA</th><th>Username</th><th>EMAIL</th><th>ASAL INSTANSI</th><th>PEKERJAAN</th><th>PERAN</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody>
             @forelse($users as $user)
                 <tr>
                     <td><div class="tb-member-cell"><span class="tb-mini-avatar">{{ strtoupper(substr($user->name,0,1)) }}</span><span><strong>{{ $user->name }}</strong><small>ID pengguna #{{ $user->id }}</small></span></div></td>
+
+                    <td>{{ $user->username }}</td>
                     <td>{{ $user->email }}</td>
                     <td>{{ $user->institution ?: '—' }}</td>
                     <td>{{ $user->occupation ?: '—' }}</td>
@@ -26,7 +37,7 @@
                     <td><select form="u{{ $user->id }}" class="input-field tb-table-select" name="is_active"><option value="1" @selected($user->is_active)>Aktif</option><option value="0" @selected(!$user->is_active)>Nonaktif</option></select></td>
                     <td><button form="u{{ $user->id }}" class="tb-action-link" type="submit">Simpan perubahan</button></td>
                 </tr>
-            @empty<tr><td colspan="7" class="tb-empty">Belum ada akun pengguna.</td></tr>@endforelse
+            @empty<tr><td colspan="8" class="tb-empty">Belum ada akun pengguna.</td></tr>@endforelse
         </tbody></table></div><div class="tb-card-pagination">{{ $users->links() }}</div>
     </div>
 </section>

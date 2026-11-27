@@ -5,7 +5,12 @@
     <p class="rb-sub">Lanjutkan membaca dan kelola koleksi Anda.</p>
     <form method="POST" action="{{ route('login.store') }}" class="rb-form" x-data="passwordVisibility" @submit="submitting = true">
         @csrf
-        <label><span class="rb-field-label">Email</span><input class="input-field" name="email" type="email" value="{{ old('email') }}" autocomplete="username" required autofocus></label>
+        <label>
+            <span class="rb-field-label">Username</span>
+            <input class="input-field" name="username" type="text"
+                value="{{ old('username') }}"
+                autocomplete="username" required autofocus>
+        </label>
         <div>
             <label for="login-password" class="rb-field-label">Kata sandi</label>
             <div class="relative">
